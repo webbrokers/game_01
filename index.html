@@ -1,17 +1,27 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Витрина займов</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
-    <div class="container">
+    <div class="main-wrapper">
         <header>
-            <h1>Вам одобрено!</h1>
-            <p>Выберите лучшее предложение из списка ниже</p>
+            <div class="header-logo">
+                <!-- Placeholder logo mimicking the reference -->
+                <span style="color: #FF9800;">■</span> ЗАЙМЕР
+            </div>
+            <div class="header-controls">
+                <a href="#" class="btn-help">ПОМОЩЬ</a>
+                <a href="#" class="btn-exit">↪ ВЫЙТИ</a>
+            </div>
         </header>
+
+        <h1>Заявка на займ отклонена</h1>
 
         <div id="product-list" class="product-list">
             <!-- Products will be injected here -->
@@ -25,42 +35,39 @@
             const listContainer = document.getElementById('product-list');
 
             if (products.length === 0) {
-                listContainer.innerHTML = '<p style="text-align:center">Нет доступных предложений.</p>';
+                listContainer.innerHTML = '<p style="text-align:center; grid-column: 1/-1;">Нет доступных предложений.</p>';
                 return;
             }
 
             products.forEach(product => {
                 const card = document.createElement('div');
                 card.className = 'product-card';
-                
-                // Handle logo: if empty, show name text
-                const logoContent = product.logo 
+
+                const logoContent = product.logo
                     ? `<img src="${product.logo}" alt="${product.name}" class="product-logo">`
-                    : `<div class="product-logo">${product.name}</div>`;
+                    : `<div class="product-logo-placeholder">${product.name}</div>`;
 
                 card.innerHTML = `
                     ${logoContent}
-                    <div class="product-info">
-                        <div class="product-name">${product.name}</div>
-                        <div class="product-details">
-                            <div class="product-meta">
-                                <small>Сумма</small>
-                                <span>${product.amountFrom} - ${product.amountTo} ₽</span>
-                            </div>
-                            <div class="product-meta">
-                                <small>Срок</small>
-                                <span>${product.term}</span>
-                            </div>
+                    <div class="product-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">до ${product.amountTo} руб.</span>
+                            <span class="stat-label">Сумма</span>
                         </div>
-                        <p style="margin-top: 5px; font-size: 0.9em; color: #666;">${product.description}</p>
+                        <div class="stat-item">
+                            <span class="stat-value">${product.term}</span>
+                            <span class="stat-label">Срок</span>
+                        </div>
                     </div>
-                    <div class="product-action">
-                        <a href="${product.link}" class="btn" target="_blank">Получить деньги</a>
+                    <div class="product-desc">
+                        ${product.description}
                     </div>
+                    <a href="${product.link}" class="btn-action" target="_blank">ПОЛУЧИТЬ ДЕНЬГИ</a>
                 `;
                 listContainer.appendChild(card);
             });
         });
     </script>
 </body>
+
 </html>
