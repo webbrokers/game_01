@@ -26,7 +26,6 @@ body {
     display: flex;
     justify-content: center;
     padding: 20px 10px 100px;
-    /* Extra bottom padding for fixed banner */
 }
 
 .main-wrapper {
@@ -149,11 +148,13 @@ header {
 
 .product-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 15px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    max-width: 900px;
+    margin: 0 auto;
 }
 
-/* Card Styles - Flatter design like reference */
+/* Card Styles */
 .product-card {
     background-color: #fff;
     border-radius: 6px;
@@ -334,8 +335,8 @@ header {
 /* Responsive Design */
 @media (max-width: 768px) {
     .product-list {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 12px;
+        grid-template-columns: 1fr;
+        gap: 15px;
     }
 
     .banner-content {
@@ -364,10 +365,6 @@ header {
 }
 
 @media (max-width: 480px) {
-    .product-list {
-        grid-template-columns: 1fr;
-    }
-
     .header-container {
         flex-direction: column;
         gap: 10px;
