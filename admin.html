@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Drag and Drop Styles */
+        .draggable-item {
+            cursor: move;
+        }
+
+        .draggable-item.dragging {
+            opacity: 0.5;
+            background: #e0e0e0;
+        }
+
+        .product-card.over {
+            border: 2px dashed var(--primary-color);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Login View -->
+    <div id="login-view" class="container">
+        <div class="login-container">
+            <h2>Вход в админку</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label>Логин</label>
+                    <input type="text" id="username" required>
+                </div>
+                <div class="form-group">
+                    <label>Пароль</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="btn">Войти</button>
+                <p id="login-error" style="color: red; margin-top: 10px; display: none;">Неверный логин или пароль</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard View -->
+    <div id="admin-view" class="container" style="display: none;">
+        <div class="admin-header">
+            <h1>Управление витриной</h1>
+            <div>
+                <button id="add-btn" class="btn">Добавить товар</button>
+                <button id="logout-btn" class="btn btn-secondary">Выйти</button>
+            </div>
+        </div>
+
+        <div id="admin-product-list" class="product-list">
+            <!-- Admin products injected here -->
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="product-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-title">Добавить товар</h2>
+            <form id="product-form">
+                <input type="hidden" id="p-id">
+                <div class="form-group">
+                    <label>Название</label>
+                    <input type="text" id="p-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Логотип (URL)</label>
+                    <input type="text" id="p-logo" placeholder="https://example.com/logo.png">
+                </div>
+                <div class="form-group">
+                    <label>Сумма ОТ</label>
+                    <input type="number" id="p-amountFrom" required>
+                </div>
+                <div class="form-group">
+                    <label>Сумма ДО</label>
+                    <input type="number" id="p-amountTo" required>
+                </div>
+                <div class="form-group">
+                    <label>Срок</label>
+                    <input type="text" id="p-term" placeholder="Например: 7-30 дней" required>
+                </div>
+                <div class="form-group">
+                    <label>Краткое описание</label>
+                    <textarea id="p-description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Ссылка</label>
+                    <input type="text" id="p-link" required>
+                </div>
+                <div style="text-align: right;">
+                    <button type="button" id="cancel-btn" class="btn btn-secondary">Отмена</button>
+                    <button type="submit" class="btn">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script>
+        // Auth Logic
+        const loginView = document.getElementById('login-view');
+        const adminView = document.getElementById('admin-view');
+        const loginForm = document.getElementById('login-form');
+        const loginError = document.getElementById('login-error');
+
+        function checkAuth() {
+            if (sessionStorage.getItem('isAdmin') === 'true') {
+                loginView.style.display = 'none';
+                adminView.style.display = 'block';
+                renderAdminList();
+            } else {
+                loginView.style.display = 'block';
+                adminView.style.display = 'none';
+            }
+        }
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            if (u === 'admin' && p === 'admin') {
+                sessionStorage.setItem('isAdmin', 'true');
+                checkAuth();
+            } else {
+                loginError.style.display = 'block';
+            }
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            sessionStorage.removeItem('isAdmin');
+            checkAuth();
+        });
+
+        // CRUD Logic
+        const listContainer = document.getElementById('admin-product-list');
+        const modal = document.getElementById('product-modal');
+        const productForm = document.getElementById('product-form');
+
+        function renderAdminList() {
+            const products = DataManager.getAll();
+            listContainer.innerHTML = '';
+
+            products.forEach((product, index) => {
+                const card = document.createElement('div');
+                card.className = 'product-card draggable-item';
+                card.draggable = true;
+                card.dataset.id = product.id;
+                card.dataset.index = index;
+
+                const logoContent = product.logo
+                    ? `<img src="${product.logo}" alt="${product.name}" class="product-logo">`
+                    : `<div class="product-logo">${product.name}</div>`;
+
+                card.innerHTML = `
+                    <div class="drag-handle">☰</div>
+                    ${logoContent}
+                    <div class="product-info">
+                        <div class="product-name">${product.name}</div>
+                        <small>Позиция: ${product.position}</small>
+                    </div>
+                    <div class="admin-controls">
+                        <button class="btn btn-edit" onclick="editProduct('${product.id}')">Ред.</button>
+                        <button class="btn btn-delete" onclick="deleteProduct('${product.id}')">Удал.</button>
+                    </div>
+                `;
+
+                addDragEvents(card);
+                listContainer.appendChild(card);
+            });
+        }
+
+        // Modal Handling
+        document.getElementById('add-btn').addEventListener('click', () => {
+            document.getElementById('modal-title').textContent = 'Добавить товар';
+            productForm.reset();
+            document.getElementById('p-id').value = '';
+            modal.style.display = 'flex';
+        });
+
+        document.getElementById('cancel-btn').addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        window.editProduct = (id) => {
+            const products = DataManager.getAll();
+            const p = products.find(x => x.id === id);
+            if (!p) return;
+
+            document.getElementById('modal-title').textContent = 'Редактировать товар';
+            document.getElementById('p-id').value = p.id;
+            document.getElementById('p-name').value = p.name;
+            document.getElementById('p-logo').value = p.logo;
+            document.getElementById('p-amountFrom').value = p.amountFrom;
+            document.getElementById('p-amountTo').value = p.amountTo;
+            document.getElementById('p-term').value = p.term;
+            document.getElementById('p-description').value = p.description;
+            document.getElementById('p-link').value = p.link;
+
+            modal.style.display = 'flex';
+        };
+
+        window.deleteProduct = (id) => {
+            if (confirm('Вы уверены?')) {
+                DataManager.delete(id);
+                renderAdminList();
+            }
+        };
+
+        productForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = document.getElementById('p-id').value;
+            const productData = {
+                name: document.getElementById('p-name').value,
+                logo: document.getElementById('p-logo').value,
+                amountFrom: Number(document.getElementById('p-amountFrom').value),
+                amountTo: Number(document.getElementById('p-amountTo').value),
+                term: document.getElementById('p-term').value,
+                description: document.getElementById('p-description').value,
+                link: document.getElementById('p-link').value,
+            };
+
+            if (id) {
+                productData.id = id;
+                // Preserve position
+                const old = DataManager.getAll().find(x => x.id === id);
+                if (old) productData.position = old.position;
+                DataManager.update(productData);
+            } else {
+                DataManager.add(productData);
+            }
+
+            modal.style.display = 'none';
+            renderAdminList();
+        });
+
+        // Drag and Drop Logic
+        let dragSrcEl = null;
+
+        function addDragEvents(item) {
+            item.addEventListener('dragstart', handleDragStart);
+            item.addEventListener('dragenter', handleDragEnter);
+            item.addEventListener('dragover', handleDragOver);
+            item.addEventListener('dragleave', handleDragLeave);
+            item.addEventListener('drop', handleDrop);
+            item.addEventListener('dragend', handleDragEnd);
+        }
+
+        function handleDragStart(e) {
+            dragSrcEl = this;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.innerHTML);
+            this.classList.add('dragging');
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+
+        function handleDragEnter(e) {
+            this.classList.add('over');
+        }
+
+        function handleDragLeave(e) {
+            this.classList.remove('over');
+        }
+
+        function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+
+            if (dragSrcEl !== this) {
+                // Get all items to find indices
+                const items = [...listContainer.querySelectorAll('.draggable-item')];
+                const srcIndex = items.indexOf(dragSrcEl);
+                const targetIndex = items.indexOf(this);
+
+                // Reorder in data
+                const products = DataManager.getAll();
+                const movedItem = products.splice(srcIndex, 1)[0];
+                products.splice(targetIndex, 0, movedItem);
+
+                // Update positions
+                products.forEach((p, i) => p.position = i + 1);
+                DataManager.save(products);
+
+                renderAdminList();
+            }
+            return false;
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            [...listContainer.querySelectorAll('.draggable-item')].forEach(item => {
+                item.classList.remove('over');
+            });
+        }
+
+        // Init
+        checkAuth();
+    </script>
+</body>
+
+</html>

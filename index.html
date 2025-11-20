@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Витрина займов</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Вам одобрено!</h1>
+            <p>Выберите лучшее предложение из списка ниже</p>
+        </header>
+
+        <div id="product-list" class="product-list">
+            <!-- Products will be injected here -->
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const products = DataManager.getAll();
+            const listContainer = document.getElementById('product-list');
+
+            if (products.length === 0) {
+                listContainer.innerHTML = '<p style="text-align:center">Нет доступных предложений.</p>';
+                return;
+            }
+
+            products.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                
+                // Handle logo: if empty, show name text
+                const logoContent = product.logo 
+                    ? `<img src="${product.logo}" alt="${product.name}" class="product-logo">`
+                    : `<div class="product-logo">${product.name}</div>`;
+
+                card.innerHTML = `
+                    ${logoContent}
+                    <div class="product-info">
+                        <div class="product-name">${product.name}</div>
+                        <div class="product-details">
+                            <div class="product-meta">
+                                <small>Сумма</small>
+                                <span>${product.amountFrom} - ${product.amountTo} ₽</span>
+                            </div>
+                            <div class="product-meta">
+                                <small>Срок</small>
+                                <span>${product.term}</span>
+                            </div>
+                        </div>
+                        <p style="margin-top: 5px; font-size: 0.9em; color: #666;">${product.description}</p>
+                    </div>
+                    <div class="product-action">
+                        <a href="${product.link}" class="btn" target="_blank">Получить деньги</a>
+                    </div>
+                `;
+                listContainer.appendChild(card);
+            });
+        });
+    </script>
+</body>
+</html>
