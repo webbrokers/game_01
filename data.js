@@ -19,7 +19,7 @@ const DataManager = {
                 amountTo: 80000,
                 term: 'до 18 недель',
                 description: 'Ставка от 0%',
-                logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Moneyman_logo.png/800px-Moneyman_logo.png',
+                logo: 'logos/moneyman.png',
                 link: 'https://moneyman.ru'
             },
             {
@@ -28,7 +28,7 @@ const DataManager = {
                 amountTo: 100000,
                 term: 'до 180 дней',
                 description: 'от 18 до 65 лет и от 0,1% в день',
-                logo: 'https://srochnodengi.ru/local/templates/main/assets/images/logo.svg',
+                logo: 'logos/srochnodengi.png',
                 link: 'https://srochnodengi.ru'
             },
             {
@@ -37,7 +37,7 @@ const DataManager = {
                 amountTo: 30000,
                 term: 'до 30 дней',
                 description: 'Первый займ бесплатно',
-                logo: 'https://web-zaim.ru/layout/img/logo.svg',
+                logo: 'logos/webzaim.png',
                 link: 'https://web-zaim.ru'
             },
             {
@@ -46,7 +46,7 @@ const DataManager = {
                 amountTo: 30000,
                 term: 'до 60 дней',
                 description: 'Без отказа',
-                logo: 'https://oneclickmoney.ru/local/templates/oneclickmoney/img/logo.svg',
+                logo: 'logos/oneclickmoney.png',
                 link: 'https://oneclickmoney.ru'
             },
             {
@@ -55,7 +55,7 @@ const DataManager = {
                 amountTo: 30000,
                 term: 'до 21 дня',
                 description: 'Мгновенный перевод',
-                logo: 'https://ekapusta.com/static/img/logo.svg',
+                logo: 'logos/ekapusta.png',
                 link: 'https://ekapusta.com'
             },
             {
@@ -64,7 +64,7 @@ const DataManager = {
                 amountTo: 100000,
                 term: 'до 12 мес',
                 description: 'Виртуальная карта',
-                logo: 'https://kviku.ru/static/img/logo.svg',
+                logo: 'logos/kviku.png',
                 link: 'https://kviku.ru'
             },
             {
@@ -73,7 +73,7 @@ const DataManager = {
                 amountTo: 100000,
                 term: 'до 365 дней',
                 description: 'Ставки банков',
-                logo: 'https://finuslugi.ru/assets/images/logo.svg',
+                logo: 'logos/finuslugi.png',
                 link: 'https://finuslugi.ru'
             },
             {
@@ -82,7 +82,7 @@ const DataManager = {
                 amountTo: 50000,
                 term: 'до 30 дней',
                 description: 'Быстрое решение',
-                logo: 'https://zarubas.ru/img/logo.png',
+                logo: 'logos/zarubas.svg',
                 link: '#'
             },
             {
@@ -91,7 +91,7 @@ const DataManager = {
                 amountTo: 50000,
                 term: 'до 24 недель',
                 description: 'Мгновенный перевод',
-                logo: 'https://turbozaim.ru/layout/img/logo.svg',
+                logo: 'logos/turbozaim.svg',
                 link: 'https://turbozaim.ru'
             },
             {
@@ -100,7 +100,7 @@ const DataManager = {
                 amountTo: 70000,
                 term: 'до 20 недель',
                 description: 'Высокий процент одобрения',
-                logo: 'https://zaymigo.com/assets/images/logo.svg',
+                logo: 'logos/zaymigo.svg',
                 link: 'https://zaymigo.com'
             },
             {
@@ -109,7 +109,7 @@ const DataManager = {
                 amountTo: 29000,
                 term: 'до 7 дней',
                 description: 'Льготный период 7 дней',
-                logo: 'https://www.vivus.ru/assets/images/logo.svg',
+                logo: 'logos/vivus.svg',
                 link: 'https://www.vivus.ru'
             },
             {
@@ -118,7 +118,7 @@ const DataManager = {
                 amountTo: 70000,
                 term: 'до 24 недель',
                 description: 'Тариф VIP',
-                logo: 'https://www.lime-zaim.ru/assets/images/logo.svg',
+                logo: 'logos/lime.svg',
                 link: 'https://www.lime-zaim.ru'
             },
             {
@@ -127,7 +127,7 @@ const DataManager = {
                 amountTo: 50000,
                 term: 'до 30 дней',
                 description: 'Без процентов',
-                logo: 'https://webbankir.com/images/logo.svg',
+                logo: 'logos/webbankir.svg',
                 link: '#'
             },
             {
@@ -136,7 +136,7 @@ const DataManager = {
                 amountTo: 60000,
                 term: 'до 18 недель',
                 description: 'Нужен только паспорт',
-                logo: 'https://joy.money/local/templates/joymoney/img/logo.svg',
+                logo: 'logos/joymoney.svg',
                 link: '#'
             },
             {
@@ -145,7 +145,7 @@ const DataManager = {
                 amountTo: 15000,
                 term: 'до 25 дней',
                 description: 'Быстрое решение',
-                logo: 'https://payps.ru/Content/img/logo.svg',
+                logo: 'logos/payps.svg',
                 link: '#'
             },
             {
@@ -154,7 +154,7 @@ const DataManager = {
                 amountTo: 30000,
                 term: 'до 21 дня',
                 description: 'На любые цели',
-                logo: 'https://cashtoyou.ru/assets/images/logo.svg',
+                logo: 'logos/cashtoyou.svg',
                 link: '#'
             },
             {
@@ -163,7 +163,7 @@ const DataManager = {
                 amountTo: 30000,
                 term: 'до 30 дней',
                 description: 'Полностью онлайн',
-                logo: 'https://kredito24.ru/assets/images/logo.svg',
+                logo: 'logos/kredito24.svg',
                 link: '#'
             },
             {
@@ -172,7 +172,7 @@ const DataManager = {
                 amountTo: 14000,
                 term: 'до 30 дней',
                 description: 'Умный кредит',
-                logo: 'https://smartcredit.ru/assets/images/logo.svg',
+                logo: 'logos/smartcredit.svg',
                 link: '#'
             },
             {
@@ -181,7 +181,7 @@ const DataManager = {
                 amountTo: 30000,
                 term: 'до 30 дней',
                 description: 'Кэшбэк до 5%',
-                logo: 'https://creditplus.ru/local/templates/creditplus/img/logo.svg',
+                logo: 'logos/creditplus.svg',
                 link: '#'
             },
             {
@@ -190,7 +190,7 @@ const DataManager = {
                 amountTo: 100000,
                 term: 'до 1 года',
                 description: 'Минимум документов',
-                logo: 'https://dozarplati.com/assets/images/logo.svg',
+                logo: 'logos/dozarplati.svg',
                 link: '#'
             }
         ];
