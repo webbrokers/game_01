@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админка Виджета</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+        }
+
+        .links-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin-top: 20px;
+            padding: 10px;
+            font-family: monospace;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .preview-section {
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Настройка Виджета "Подарок"</h1>
+
+        <div class="form-group">
+            <label>Сторона отображения</label>
+            <select id="position">
+                <option value="right">Справа</option>
+                <option value="left">Слева</option>
+            </select>
+        </div>
+
+        <div class="form-group checkbox-group">
+            <input type="checkbox" id="isActive">
+            <label for="isActive">Активный виджет (автооткрытие)</label>
+        </div>
+
+        <div class="form-group" id="timerGroup" style="display: none;">
+            <label>Время до открытия (секунды)</label>
+            <input type="number" id="timer" value="5" min="1">
+        </div>
+
+        <div class="form-group checkbox-group">
+            <input type="checkbox" id="isBlinking" checked>
+            <label for="isBlinking">Мигание виджета</label>
+        </div>
+
+        <div class="form-group">
+            <label>Текст на закладке</label>
+            <input type="text" id="text" value="Вам подарок">
+        </div>
+
+        <h3>Ссылки на кнопках</h3>
+        <div class="links-grid">
+            <div class="form-group">
+                <label>Кнопка 1 (Ссылка)</label>
+                <input type="text" class="btn-link" placeholder="https://..." value="#">
+            </div>
+            <div class="form-group">
+                <label>Кнопка 2 (Ссылка)</label>
+                <input type="text" class="btn-link" placeholder="https://..." value="#">
+            </div>
+            <div class="form-group">
+                <label>Кнопка 3 (Ссылка)</label>
+                <input type="text" class="btn-link" placeholder="https://..." value="#">
+            </div>
+            <div class="form-group">
+                <label>Кнопка 4 (Ссылка)</label>
+                <input type="text" class="btn-link" placeholder="https://..." value="#">
+            </div>
+        </div>
+
+        <button onclick="generateCode()">Сгенерировать код</button>
+
+        <div class="preview-section">
+            <label>Код для вставки на сайт:</label>
+            <textarea id="outputCode" readonly></textarea>
+        </div>
+    </div>
+
+    <script>
+        const isActiveCheckbox = document.getElementById('isActive');
+        const timerGroup = document.getElementById('timerGroup');
+
+        isActiveCheckbox.addEventListener('change', () => {
+            timerGroup.style.display = isActiveCheckbox.checked ? 'block' : 'none';
+        });
+
+        function generateCode() {
+            const position = document.getElementById('position').value;
+            const isActive = document.getElementById('isActive').checked;
+            const timer = document.getElementById('timer').value;
+            const isBlinking = document.getElementById('isBlinking').checked;
+            const text = document.getElementById('text').value;
+
+            const links = Array.from(document.querySelectorAll('.btn-link')).map(input => input.value);
+
+            const config = {
+                position,
+                isActive,
+                timer: parseInt(timer),
+                isBlinking,
+                text,
+                buttons: links.map(link => ({ text: 'Оформить', link }))
+            };
+
+            // We assume the widget.js is hosted relative to the admin panel for now, 
+            // or we can use an absolute path if we knew the domain. 
+            // For this task, we'll use a relative path assuming they are in the same folder structure on the server.
+            // But since the user wants to copy it to OTHER sites, we should probably ask for the base URL or assume a CDN.
+            // For now, let's use a placeholder URL that the user can replace, or a relative path if it's the same site.
+
+            const scriptUrl = 'vidget/widget.js'; // Relative path for the current site
+
+            const code = `
+<!-- Gift Widget Start -->
+<script>
+    window.GiftWidgetConfig = ${JSON.stringify(config, null, 4)};
+<\/script>
+<script src="${scriptUrl}"><\/script>
+<!-- Gift Widget End -->
+        `.trim();
+
+            document.getElementById('outputCode').value = code;
+        }
+    </script>
+
+</body>
+
+</html>
