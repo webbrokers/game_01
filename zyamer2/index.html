@@ -20,82 +20,60 @@
       </div>
       <div class="header-actions">
         <a class="link-soft" href="#" aria-label="Помощь">ПОМОЩЬ</a>
-        <!doctype html>
-        <html lang="ru">
+        <a class="link-soft" href="#" aria-label="Выйти">ВЫЙТИ</a>
+      </div>
+    </header>
 
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Займер — предложения</title>
-          <link rel="stylesheet" href="style.css">
-        </head>
+    <h1>Заявка на займ отклонена</h1>
 
-        <body>
-          <div class="page">
-            <header class="header">
-              <div class="brand">
-                <div class="brand-mark"></div>
-                <div>
-                  <div class="brand-name">ЗАЙМЕР</div>
-                  <span class="brand-sub">робот онлайн займов</span>
-                </div>
-              </div>
-              <div class="header-actions">
-                <a class="link-soft" href="#" aria-label="Помощь">ПОМОЩЬ</a>
-                <a class="link-soft" href="#" aria-label="Выйти">ВЫЙТИ</a>
-              </div>
-            </header>
+    <section class="cards" id="cards-container">
+      <!-- Cards will be rendered here by JavaScript -->
+    </section>
+  </div>
+  <!-- Gift Widget Start -->
+  <script>
+    window.GiftWidgetConfig = {
+      "position": "left",
+      "isActive": true,
+      "timer": 5,
+      "isBlinking": true,
+      "text": "Вам подарок",
+      "buttons": [
+        {
+          "text": "Оформить",
+          "link": "#"
+        },
+        {
+          "text": "Оформить",
+          "link": "#"
+        },
+        {
+          "text": "Оформить",
+          "link": "#"
+        },
+        {
+          "text": "Оформить",
+          "link": "#"
+        }
+      ]
+    };
+  </script>
+  <script src="../vidget/widget.js"></script>
+  <!-- Gift Widget End -->
 
-            <h1>Заявка на займ отклонена</h1>
+  <script src="data.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const container = document.getElementById('cards-container');
+      const offers = getOffers();
 
-            <section class="cards" id="cards-container">
-              <!-- Cards will be rendered here by JavaScript -->
-            </section>
-          </div>
-          <!-- Gift Widget Start -->
-          <script>
-            window.GiftWidgetConfig = {
-              "position": "left",
-              "isActive": true,
-              "timer": 5,
-              "isBlinking": true,
-              "text": "Вам подарок",
-              "buttons": [
-                {
-                  "text": "Оформить",
-                  "link": "#"
-                },
-                {
-                  "text": "Оформить",
-                  "link": "#"
-                },
-                {
-                  "text": "Оформить",
-                  "link": "#"
-                },
-                {
-                  "text": "Оформить",
-                  "link": "#"
-                }
-              ]
-            };
-          </script>
-          <script src="../vidget/widget.js"></script>
-          <!-- Gift Widget End -->
+      if (!offers || offers.length === 0) {
+        // Fallback if something goes wrong, though getOffers handles defaults
+        container.innerHTML = '<p>Нет доступных предложений.</p>';
+        return;
+      }
 
-          <script src="data.js"></script>
-          <script>
-            document.addEventListener('DOMContentLoaded', () => {
-              const container = document.getElementById('cards-container');
-              const offers = getOffers();
-
-              if (!offers || offers.length === 0) {
-                // Fallback if something goes wrong, though getOffers handles defaults
-                container.innerHTML = '<p>Нет доступных предложений.</p>';
-                return;
-              }
-
-              container.innerHTML = offers.map(offer => `
+      container.innerHTML = offers.map(offer => `
         <article class="card" onclick="window.location.href='${offer.link}'" style="cursor: pointer;">
           <div class="logo"><img src="${offer.logo}" alt="Company Logo"></div>
           <div class="offer">${offer.amount}<br>${offer.term}</div>
@@ -110,9 +88,9 @@
           </a>
         </article>
       `).join('');
-            });
-          </script>
+    });
+  </script>
 
-        </body>
+</body>
 
-        </html>
+</html>
