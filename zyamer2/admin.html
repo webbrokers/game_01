@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Zaymer2</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            background: #f4f4f4;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin-top: 0;
+        }
+
+        .offer-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .offer-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #ddd;
+            margin-bottom: 5px;
+            background: #fff;
+            cursor: grab;
+        }
+
+        .offer-item.dragging {
+            opacity: 0.5;
+        }
+
+        .handle {
+            margin-right: 10px;
+            cursor: grab;
+            font-size: 20px;
+            color: #888;
+        }
+
+        .offer-preview {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+        }
+
+        .offer-preview img {
+            width: 50px;
+            height: auto;
+            margin-right: 10px;
+        }
+
+        .offer-details {
+            flex-grow: 1;
+        }
+
+        .btn {
+            padding: 5px 10px;
+            cursor: pointer;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            margin-left: 5px;
+        }
+
+        .btn-save {
+            background: #28a745;
+            display: block;
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            width: 400px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+
+        .modal-actions {
+            text-align: right;
+        }
+
+        .btn-cancel {
+            background: #6c757d;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Управление офферами</h1>
+        <ul class="offer-list" id="offerList">
+            <!-- Items will be injected here -->
+        </ul>
+        <button class="btn btn-save" id="saveBtn">Сохранить изменения</button>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <h2>Редактировать оффер</h2>
+            <form id="editForm">
+                <input type="hidden" id="editId">
+                <div class="form-group">
+                    <label>Логотип (URL или файл)</label>
+                    <input type="file" id="logoFile" accept="image/*">
+                    <input type="text" id="logoUrl" placeholder="Или вставьте URL" style="margin-top: 5px;">
+                </div>
+                <div class="form-group">
+                    <label>Сумма</label>
+                    <input type="text" id="editAmount">
+                </div>
+                <div class="form-group">
+                    <label>Срок</label>
+                    <input type="text" id="editTerm">
+                </div>
+                <div class="form-group">
+                    <label>Ссылка (на кнопке и карточке)</label>
+                    <input type="text" id="editLink">
+                </div>
+                <div class="form-group">
+                    <label>Текст бейджа</label>
+                    <input type="text" id="editBadge">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeModal()">Отмена</button>
+                    <button type="submit" class="btn">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script>
+        let currentOffers = getOffers();
+        const listEl = document.getElementById('offerList');
+        const modal = document.getElementById('editModal');
+        const form = document.getElementById('editForm');
+
+        function renderList() {
+            listEl.innerHTML = '';
+            currentOffers.forEach((offer, index) => {
+                const li = document.createElement('li');
+                li.className = 'offer-item';
+                li.draggable = true;
+                li.dataset.index = index;
+                li.innerHTML = `
+        <span class="handle">☰</span>
+        <div class="offer-preview">
+          <img src="${offer.logo}" alt="logo">
+          <div class="offer-details">
+            <strong>${offer.amount}</strong> - ${offer.term}<br>
+            <small>${offer.link}</small>
+          </div>
+        </div>
+        <button class="btn" onclick="openEdit(${index})">Редактировать</button>
+      `;
+                addDragEvents(li);
+                listEl.appendChild(li);
+            });
+        }
+
+        // Drag and Drop Logic
+        let dragStartIndex;
+
+        function addDragEvents(item) {
+            item.addEventListener('dragstart', () => {
+                dragStartIndex = +item.closest('li').getAttribute('data-index');
+                item.classList.add('dragging');
+            });
+
+            item.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+
+            item.addEventListener('drop', () => {
+                const dragEndIndex = +item.closest('li').getAttribute('data-index');
+                swapItems(dragStartIndex, dragEndIndex);
+                item.classList.remove('dragging');
+            });
+
+            item.addEventListener('dragenter', () => {
+                item.classList.add('over');
+            });
+
+            item.addEventListener('dragleave', () => {
+                item.classList.remove('over');
+            });
+
+            item.addEventListener('dragend', () => {
+                item.classList.remove('dragging');
+                document.querySelectorAll('.offer-item').forEach(i => i.classList.remove('over'));
+            });
+        }
+
+        function swapItems(fromIndex, toIndex) {
+            const itemOne = currentOffers[fromIndex];
+            currentOffers.splice(fromIndex, 1);
+            currentOffers.splice(toIndex, 0, itemOne);
+            renderList();
+        }
+
+        // Edit Logic
+        function openEdit(index) {
+            const offer = currentOffers[index];
+            document.getElementById('editId').value = index;
+            document.getElementById('logoUrl').value = offer.logo;
+            document.getElementById('editAmount').value = offer.amount;
+            document.getElementById('editTerm').value = offer.term;
+            document.getElementById('editLink').value = offer.link;
+            document.getElementById('editBadge').value = offer.badgeText;
+            document.getElementById('logoFile').value = ''; // Reset file input
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const index = document.getElementById('editId').value;
+            const fileInput = document.getElementById('logoFile');
+
+            const updateOffer = (logoData) => {
+                currentOffers[index] = {
+                    ...currentOffers[index],
+                    logo: logoData || document.getElementById('logoUrl').value,
+                    amount: document.getElementById('editAmount').value,
+                    term: document.getElementById('editTerm').value,
+                    link: document.getElementById('editLink').value,
+                    badgeText: document.getElementById('editBadge').value
+                };
+                renderList();
+                closeModal();
+            };
+
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    updateOffer(e.target.result);
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                updateOffer(null);
+            }
+        });
+
+        // Save Logic
+        document.getElementById('saveBtn').addEventListener('click', () => {
+            saveOffers(currentOffers);
+            alert('Изменения сохранены! Обновите страницу index.html.');
+        });
+
+        renderList();
+    </script>
+
+</body>
+
+</html>
