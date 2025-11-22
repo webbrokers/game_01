@@ -30,6 +30,36 @@
       <!-- Cards will be rendered here by JavaScript -->
     </section>
   </div>
+  <!-- Gift Widget Start -->
+  <script>
+    window.GiftWidgetConfig = {
+      "position": "left",
+      "isActive": true,
+      "timer": 5,
+      "isBlinking": true,
+      "text": "Вам подарок",
+      "buttons": [
+        {
+          "text": "Оформить",
+          "link": "#"
+        },
+        {
+          "text": "Оформить",
+          "link": "#"
+        },
+        {
+          "text": "Оформить",
+          "link": "#"
+        },
+        {
+          "text": "Оформить",
+          "link": "#"
+        }
+      ]
+    };
+  </script>
+  <script src="../vidget/widget.js"></script>
+  <!-- Gift Widget End -->
 
   <script src="data.js"></script>
   <script>
@@ -38,6 +68,7 @@
       const offers = getOffers();
 
       if (!offers || offers.length === 0) {
+        // Fallback if something goes wrong, though getOffers handles defaults
         container.innerHTML = '<p>Нет доступных предложений.</p>';
         return;
       }
@@ -57,56 +88,6 @@
           </a>
         </article>
       `).join('');
-
-      // Function to adjust font size if text exceeds 2 lines
-      function adjustFontSizes() {
-        const offerElements = document.querySelectorAll('.offer');
-        offerElements.forEach(el => {
-          let fontSize = 17; // Start with default font size
-          el.style.fontSize = fontSize + 'px';
-
-          // Check if height exceeds 2 lines (approx 46px based on 1.35 line-height of 17px)
-          // We'll use a safer check: scrollHeight > clientHeight when max-height is set, 
-          // or just check height relative to line-height.
-          // Since we don't have max-height set, we can check if height > line-height * 2.
-
-          const lineHeight = parseFloat(window.getComputedStyle(el).lineHeight);
-          const maxHeight = lineHeight * 2;
-
-          while (el.offsetHeight > maxHeight + 2 && fontSize > 12) { // +2 buffer
-            fontSize--;
-            el.style.fontSize = fontSize + 'px';
-          }
-        });
-      }
-
-      // Run initially and on resize
-      adjustFontSizes();
-      window.addEventListener('resize', adjustFontSizes);
-
-      // Load custom codes from localStorage
-      const customCode = localStorage.getItem('zaymer_codes');
-      if (customCode) {
-        const div = document.createElement('div');
-        div.innerHTML = customCode;
-
-        // Execute scripts in the injected code
-        Array.from(div.querySelectorAll('script')).forEach(oldScript => {
-          const newScript = document.createElement('script');
-          Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-          newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-          document.body.appendChild(newScript);
-        });
-
-        // Append non-script elements
-        while (div.firstChild) {
-          if (div.firstChild.nodeName !== 'SCRIPT') {
-            document.body.appendChild(div.firstChild);
-          } else {
-            div.removeChild(div.firstChild);
-          }
-        }
-      }
     });
   </script>
 
