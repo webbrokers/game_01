@@ -191,6 +191,12 @@
             flex-grow: 1;
         }
 
+        /* UPDATED: Left Group for Mobile Stacking */
+        .item-left-group {
+            display: flex;
+            align-items: center;
+        }
+
         /* UPDATED: Logo Styles */
         .offer-preview img {
             width: 140px;
@@ -243,11 +249,17 @@
 
         .btn-edit-pos:hover {
             background: #e2e6ea;
+            display: flex;
+            /* Ensure flex is kept */
         }
 
         .btn-edit-pos .icon {
             display: none;
             /* Hidden on desktop */
+        }
+
+        .btn-edit-pos .text {
+            display: inline;
         }
 
         /* Descriptions Tab */
@@ -519,6 +531,54 @@
                 padding: 8px 15px;
                 font-size: 14px;
             }
+
+            /* --- NEW MOBILE STYLES --- */
+
+            /* 1. Stack Left Group */
+            .item-left-group {
+                flex-direction: column;
+                align-items: center;
+                gap: 5px;
+                margin-right: 10px;
+            }
+
+            .position-number {
+                margin-right: 0;
+                font-size: 16px;
+                margin-bottom: 2px;
+            }
+
+            .handle {
+                margin-right: 0;
+                margin-bottom: 5px;
+                font-size: 20px;
+            }
+
+            /* 2. Smaller Logo */
+            .offer-preview img {
+                width: 70px;
+                height: 30px;
+                margin: 0 10px;
+            }
+
+            /* 3. Edit Button Icon Only */
+            .btn-edit-pos .text {
+                display: none;
+            }
+
+            .btn-edit-pos .icon {
+                display: inline;
+                font-size: 18px;
+            }
+
+            .btn-edit-pos {
+                padding: 8px;
+                border-radius: 50%;
+                /* Optional: make it roundish or just square */
+                width: 36px;
+                height: 36px;
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -526,7 +586,8 @@
 <body>
     <div class="overlay" id="overlay"></div>
     <aside id="sidebar">
-        <div class="brand">Zaymer Admin</div>
+        <a href="index.html" class="brand" style="text-decoration: none; color: inherit; display: block;">Zaymer
+            Admin</a>
         <nav>
             <a class="nav-link active" data-tab="positions" data-title="Позиции офферов">Позиции офферов</a>
             <a class="nav-link" data-tab="descriptions" data-title="Описание офферов">Описание офферов</a>
@@ -719,11 +780,13 @@
                 div.dataset.index = index;
 
                 div.innerHTML = `
-                        <div class="position-number">${index + 1}</div>
-                        <div class="handle">☰</div>
-                        <div class="offer-controls">
-                            <button class="btn-icon" onclick="moveItem(${index}, -1)" title="Вверх">↑</button>
-                            <button class="btn-icon" onclick="moveItem(${index}, 1)" title="Вниз">↓</button>
+                        <div class="item-left-group">
+                            <div class="position-number">${index + 1}</div>
+                            <div class="handle">☰</div>
+                            <div class="offer-controls">
+                                <button class="btn-icon" onclick="moveItem(${index}, -1)" title="Вверх">↑</button>
+                                <button class="btn-icon" onclick="moveItem(${index}, 1)" title="Вниз">↓</button>
+                            </div>
                         </div>
                         <div class="offer-preview">
                             <img src="${offer.logo}" alt="logo">
@@ -733,7 +796,7 @@
                             </div>
                         </div>
                         <button class="btn-edit-pos" onclick="openEditModal(${index})">
-                            <span>Редактировать</span>
+                            <span class="text">Редактировать</span>
                             <span class="icon">✏️</span>
                         </button>
                     `;
