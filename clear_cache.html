@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Очистка кеша</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 500px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .details {
+            margin-top: 20px;
+            text-align: left;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🧹 Очистка кеша</h1>
+        <div id="status"></div>
+        <button onclick="clearAllCache()">Очистить весь кеш</button>
+        <button onclick="location.reload()">Обновить страницу</button>
+        <div class="details" id="details"></div>
+    </div>
+
+    <script>
+        function clearAllCache() {
+            const statusDiv = document.getElementById('status');
+            const detailsDiv = document.getElementById('details');
+            let cleared = [];
+
+            try {
+                // Очистка localStorage
+                const localStorageKeys = Object.keys(localStorage);
+                localStorage.clear();
+                cleared.push(`✓ localStorage очищен (${localStorageKeys.length} ключей)`);
+
+                // Очистка sessionStorage
+                const sessionStorageKeys = Object.keys(sessionStorage);
+                sessionStorage.clear();
+                cleared.push(`✓ sessionStorage очищен (${sessionStorageKeys.length} ключей)`);
+
+                // Очистка cookies
+                const cookies = document.cookie.split(";");
+                for (let cookie of cookies) {
+                    const eqPos = cookie.indexOf("=");
+                    const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+                    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+                }
+                cleared.push(`✓ Cookies очищены (${cookies.length} cookie)`);
+
+                // Попытка очистить Service Workers
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                        for (let registration of registrations) {
+                            registration.unregister();
+                        }
+                        cleared.push(`✓ Service Workers удалены (${registrations.length})`);
+                        updateStatus();
+                    });
+                }
+
+                // Попытка очистить Cache API
+                if ('caches' in window) {
+                    caches.keys().then(function (names) {
+                        for (let name of names) {
+                            caches.delete(name);
+                        }
+                        cleared.push(`✓ Cache API очищен (${names.length} кешей)`);
+                        updateStatus();
+                    });
+                }
+
+                updateStatus();
+
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status" style="background: #f8d7da; color: #721c24;">❌ Ошибка: ${error.message}</div>`;
+            }
+
+            function updateStatus() {
+                statusDiv.innerHTML = '<div class="status success">✅ Кеш успешно очищен!</div>';
+                detailsDiv.innerHTML = '<h3>Очищено:</h3><ul>' +
+                    cleared.map(item => `<li>${item}</li>`).join('') +
+                    '</ul><p><strong>Рекомендация:</strong> Нажмите Ctrl+Shift+R (или Cmd+Shift+R на Mac) для жесткой перезагрузки страницы.</p>';
+            }
+        }
+
+        // Показать текущее состояние при загрузке
+        window.onload = function () {
+            const statusDiv = document.getElementById('status');
+            const localCount = Object.keys(localStorage).length;
+            const sessionCount = Object.keys(sessionStorage).length;
+
+            statusDiv.innerHTML = `<div class="status info">
+                📊 Текущее состояние:<br>
+                localStorage: ${localCount} ключей<br>
+                sessionStorage: ${sessionCount} ключей
+            </div>`;
+        };
+    </script>
+</body>
+
+</html>
