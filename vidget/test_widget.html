@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест виджета</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            background: #f0f0f0;
+        }
+
+        .content {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        p {
+            line-height: 1.6;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="content">
+        <h1>Тестовая страница виджета</h1>
+        <p>Это тестовая страница для проверки работы виджета "Подарок".</p>
+        <p>Виджет должен отображаться справа в виде закладки с текстом "Вам подарок".</p>
+        <p>При клике на закладку должен открываться попап с 4 кнопками.</p>
+    </div>
+
+    <!-- Gift Widget Start -->
+    <script>
+        window.GiftWidgetConfig = {
+            "position": "right",
+            "isActive": true,
+            "timer": 3,
+            "isBlinking": true,
+            "text": "Вам подарок",
+            "buttons": [
+                {
+                    "text": "Оформить",
+                    "link": "https://example.com/offer1"
+                },
+                {
+                    "text": "Оформить",
+                    "link": "https://example.com/offer2"
+                },
+                {
+                    "text": "Оформить",
+                    "link": "https://example.com/offer3"
+                },
+                {
+                    "text": "Оформить",
+                    "link": "https://example.com/offer4"
+                }
+            ]
+        };
+    </script>
+    <script src="widget.js"></script>
+    <!-- Gift Widget End -->
+
+</body>
+
+</html>
