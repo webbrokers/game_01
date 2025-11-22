@@ -67,21 +67,39 @@
             background: #162028;
         }
 
-        /* Main Content */
+        /* Main Content Structure */
         main {
             flex-grow: 1;
-            padding: 20px;
-            overflow-y: auto;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
+            /* Prevent body scroll */
         }
 
-        h1 {
-            margin-top: 0;
+        /* Sticky Top Bar */
+        .top-bar {
+            background: #fff;
+            padding: 15px 30px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            z-index: 10;
+        }
+
+        .top-bar h1 {
+            margin: 0;
+            font-size: 24px;
             color: #2c3e50;
-            border-bottom: 2px solid #ddd;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
+        }
+
+        /* Scrollable Content Area */
+        .content-area {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px 30px;
         }
 
         /* Tabs */
@@ -117,6 +135,15 @@
         .offer-item.dragging {
             opacity: 0.5;
             background: #f9f9f9;
+        }
+
+        .position-number {
+            font-size: 18px;
+            font-weight: bold;
+            color: #95a5a6;
+            width: 30px;
+            text-align: center;
+            margin-right: 10px;
         }
 
         .handle {
@@ -256,27 +283,28 @@
             display: inline-block;
         }
 
-        /* Global Save Button */
-        .save-bar {
-            margin-top: auto;
-            padding-top: 20px;
-            border-top: 1px solid #ddd;
-            text-align: right;
-        }
-
+        /* Save Button */
         .btn-save {
-            background: #27ae60;
+            background: #95a5a6;
+            /* Default disabled color */
             color: white;
             border: none;
-            padding: 12px 30px;
+            padding: 10px 25px;
             font-size: 16px;
             border-radius: 5px;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: background 0.2s;
+            cursor: not-allowed;
+            transition: background 0.3s;
+            pointer-events: none;
         }
 
-        .btn-save:hover {
+        .btn-save.active {
+            background: #27ae60;
+            cursor: pointer;
+            pointer-events: auto;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-save.active:hover {
             background: #219150;
         }
     </style>
@@ -287,9 +315,9 @@
     <aside>
         <div class="brand">Zaymer Admin</div>
         <nav>
-            <a class="nav-link active" data-tab="positions">Позиции офферов</a>
-            <a class="nav-link" data-tab="descriptions">Описание офферов</a>
-            <a class="nav-link" data-tab="links">Ссылки</a>
+            <a class="nav-link active" data-tab="positions" data-title="Позиции офферов">Позиции офферов</a>
+            <a class="nav-link" data-tab="descriptions" data-title="Описание офферов">Описание офферов</a>
+            <a class="nav-link" data-tab="links" data-title="Ссылки">Ссылки</a>
         </nav>
         <div class="user-profile" onclick="alert('Logout functionality coming soon!')">
             <div>Admin User</div>
@@ -298,29 +326,31 @@
     </aside>
 
     <main>
-        <div id="positions-tab" class="tab-content active">
-            <h1>Позиции офферов</h1>
-            <div id="positions-list">
-                <!-- Rendered by JS -->
-            </div>
-        </div>
-
-        <div id="descriptions-tab" class="tab-content">
-            <h1>Описание офферов</h1>
-            <div id="descriptions-list">
-                <!-- Rendered by JS -->
-            </div>
-        </div>
-
-        <div id="links-tab" class="tab-content">
-            <h1>Ссылки</h1>
-            <div id="links-list">
-                <!-- Rendered by JS -->
-            </div>
-        </div>
-
-        <div class="save-bar">
+        <!-- Sticky Top Bar -->
+        <div class="top-bar">
+            <h1 id="page-title">Позиции офферов</h1>
             <button class="btn-save" id="saveBtn">Сохранить изменения</button>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div class="content-area">
+            <div id="positions-tab" class="tab-content active">
+                <div id="positions-list">
+                    <!-- Rendered by JS -->
+                </div>
+            </div>
+
+            <div id="descriptions-tab" class="tab-content">
+                <div id="descriptions-list">
+                    <!-- Rendered by JS -->
+                </div>
+            </div>
+
+            <div id="links-tab" class="tab-content">
+                <div id="links-list">
+                    <!-- Rendered by JS -->
+                </div>
+            </div>
         </div>
     </main>
 
@@ -337,6 +367,7 @@
         // --- Navigation ---
         const navLinks = document.querySelectorAll('.nav-link');
         const tabs = document.querySelectorAll('.tab-content');
+        const pageTitle = document.getElementById('page-title');
 
         navLinks.forEach(link => {
             link.addEventListener('click', () => {
@@ -348,8 +379,32 @@
                 link.classList.add('active');
                 const tabId = link.getAttribute('data-tab') + '-tab';
                 document.getElementById(tabId).classList.add('active');
+
+                // Update Title
+                pageTitle.textContent = link.getAttribute('data-title');
             });
         });
+
+        // --- Dirty State Logic ---
+        const saveBtn = document.getElementById('saveBtn');
+        let isDirty = false;
+
+        function markAsDirty() {
+            if (!isDirty) {
+                isDirty = true;
+                saveBtn.classList.add('active');
+                saveBtn.textContent = 'Сохранить изменения';
+            }
+        }
+
+        function markAsClean() {
+            isDirty = false;
+            saveBtn.classList.remove('active');
+            saveBtn.textContent = 'Сохранено';
+            setTimeout(() => {
+                if (!isDirty) saveBtn.textContent = 'Сохранить изменения';
+            }, 2000);
+        }
 
         // --- Renders ---
 
@@ -369,6 +424,7 @@
                 div.draggable = true;
                 div.dataset.index = index;
                 div.innerHTML = `
+                    <div class="position-number">${index + 1}</div>
                     <div class="handle">☰</div>
                     <div class="offer-preview">
                         <img src="${offer.logo}" alt="logo">
@@ -399,7 +455,7 @@
                         <img src="${offer.logo}" id="preview-${index}">
                         <input type="file" id="file-${index}" style="display:none" accept="image/*" onchange="handleFileUpload(${index}, this)">
                         <button class="btn-add" onclick="document.getElementById('file-${index}').click()" style="width:100%; margin-bottom:5px;">Загрузить лого</button>
-                        <input type="text" value="${offer.logo}" onchange="updateField(${index}, 'logo', this.value)" placeholder="URL логотипа" style="width:100%; font-size:10px;">
+                        <input type="text" value="${offer.logo}" oninput="updateField(${index}, 'logo', this.value)" placeholder="URL логотипа" style="width:100%; font-size:10px;">
                     </div>
                     <div class="fields-section">
                         <div class="form-group">
@@ -433,7 +489,7 @@
                     offer.altLinks.forEach((link, linkIndex) => {
                         altLinksHtml += `
                             <div class="alt-link-item">
-                                <input type="text" value="${link}" onchange="updateAltLink(${index}, ${linkIndex}, this.value)" placeholder="Альтернативная ссылка">
+                                <input type="text" value="${link}" oninput="updateAltLink(${index}, ${linkIndex}, this.value)" placeholder="Альтернативная ссылка">
                                 <button class="btn-remove" onclick="removeAltLink(${index}, ${linkIndex})">×</button>
                             </div>
                         `;
@@ -447,7 +503,7 @@
                     </div>
                     <div class="form-group">
                         <label>Основная ссылка</label>
-                        <input type="text" value="${offer.link}" onchange="updateField(${index}, 'link', this.value)">
+                        <input type="text" value="${offer.link}" oninput="updateField(${index}, 'link', this.value)">
                     </div>
                     <div class="form-group">
                         <label>Альтернативные ссылки</label>
@@ -465,7 +521,8 @@
 
         function updateField(index, field, value) {
             currentOffers[index][field] = value;
-            // If logo changed, update preview in UI immediately if possible, or just re-render positions to show new logo
+            markAsDirty();
+            // If logo changed, update preview in UI immediately if possible
             if (field === 'logo') {
                 const preview = document.getElementById(`preview-${index}`);
                 if (preview) preview.src = value;
@@ -477,9 +534,7 @@
                 const reader = new FileReader();
                 reader.onload = function (e) {
                     updateField(index, 'logo', e.target.result);
-                    // Also update the text input for URL to show it's data URI (optional, or just leave blank)
-                    // Re-render descriptions to show new preview
-                    renderDescriptions();
+                    renderDescriptions(); // Re-render to show new preview
                 };
                 reader.readAsDataURL(input.files[0]);
             }
@@ -493,21 +548,25 @@
             currentOffers.splice(index, 1);
             currentOffers.splice(newIndex, 0, item);
 
+            markAsDirty();
             renderAll(); // Re-render all to keep sync
         }
 
         function addAltLink(index) {
             if (!currentOffers[index].altLinks) currentOffers[index].altLinks = [];
             currentOffers[index].altLinks.push('');
+            markAsDirty();
             renderLinks();
         }
 
         function updateAltLink(offerIndex, linkIndex, value) {
             currentOffers[offerIndex].altLinks[linkIndex] = value;
+            markAsDirty();
         }
 
         function removeAltLink(offerIndex, linkIndex) {
             currentOffers[offerIndex].altLinks.splice(linkIndex, 1);
+            markAsDirty();
             renderLinks();
         }
 
@@ -534,16 +593,18 @@
         }
 
         function swapItems(fromIndex, toIndex) {
+            if (fromIndex === toIndex) return;
             const itemOne = currentOffers[fromIndex];
             currentOffers.splice(fromIndex, 1);
             currentOffers.splice(toIndex, 0, itemOne);
+            markAsDirty();
             renderAll();
         }
 
         // --- Save ---
-        document.getElementById('saveBtn').addEventListener('click', () => {
+        saveBtn.addEventListener('click', () => {
             saveOffers(currentOffers);
-            alert('Все изменения сохранены!');
+            markAsClean();
             renderAll(); // Refresh to ensure clean state
         });
 
