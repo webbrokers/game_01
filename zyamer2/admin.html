@@ -7,48 +7,124 @@
     <title>Admin Panel - Zaymer2</title>
     <style>
         body {
-            font-family: sans-serif;
-            padding: 20px;
-            background: #f4f4f4;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f4f7f6;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: #fff;
+        /* Sidebar */
+        aside {
+            width: 250px;
+            background: #2c3e50;
+            color: #ecf0f1;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        aside .brand {
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            background: #1a252f;
+            border-bottom: 1px solid #34495e;
+        }
+
+        aside nav {
+            flex-grow: 1;
+            padding-top: 20px;
+        }
+
+        aside nav a {
+            display: block;
+            padding: 15px 20px;
+            color: #bdc3c7;
+            text-decoration: none;
+            transition: background 0.3s, color 0.3s;
+            cursor: pointer;
+        }
+
+        aside nav a:hover,
+        aside nav a.active {
+            background: #34495e;
+            color: #fff;
+        }
+
+        aside .user-profile {
+            padding: 20px;
+            background: #1a252f;
+            border-top: 1px solid #34495e;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        aside .user-profile:hover {
+            background: #162028;
+        }
+
+        /* Main Content */
+        main {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
 
         h1 {
             margin-top: 0;
+            color: #2c3e50;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
         }
 
-        .offer-list {
-            list-style: none;
-            padding: 0;
+        /* Tabs */
+        .tab-content {
+            display: none;
         }
 
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Common Card Styles */
+        .card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #e0e0e0;
+        }
+
+        /* Positions Tab */
         .offer-item {
             display: flex;
             align-items: center;
             padding: 10px;
-            border: 1px solid #ddd;
-            margin-bottom: 5px;
             background: #fff;
-            cursor: grab;
+            border: 1px solid #ddd;
+            margin-bottom: 8px;
+            border-radius: 4px;
         }
 
         .offer-item.dragging {
             opacity: 0.5;
+            background: #f9f9f9;
         }
 
         .handle {
-            margin-right: 10px;
+            margin-right: 15px;
             cursor: grab;
-            font-size: 20px;
-            color: #888;
+            font-size: 24px;
+            color: #aaa;
+            user-select: none;
         }
 
         .offer-preview {
@@ -58,186 +134,399 @@
         }
 
         .offer-preview img {
-            width: 50px;
+            width: 60px;
             height: auto;
-            margin-right: 10px;
+            margin-right: 15px;
+            border-radius: 4px;
         }
 
-        .offer-details {
-            flex-grow: 1;
+        .offer-controls {
+            display: flex;
+            gap: 5px;
         }
 
-        .btn {
-            padding: 5px 10px;
-            cursor: pointer;
-            background: #007bff;
-            color: #fff;
+        .btn-icon {
+            background: #e0e0e0;
             border: none;
             border-radius: 4px;
-            margin-left: 5px;
-        }
-
-        .btn-save {
-            background: #28a745;
-            display: block;
-            width: 100%;
-            padding: 15px;
-            font-size: 18px;
-            margin-top: 20px;
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal.active {
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
             display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: background 0.2s;
         }
 
-        .modal-content {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            width: 400px;
+        .btn-icon:hover {
+            background: #d0d0d0;
+        }
+
+        /* Descriptions Tab */
+        .desc-card {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .desc-card .logo-section {
+            width: 150px;
+            text-align: center;
+        }
+
+        .desc-card .logo-section img {
+            max-width: 100%;
+            margin-bottom: 10px;
+            border: 1px solid #eee;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .desc-card .fields-section {
+            flex-grow: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
         }
 
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 0;
         }
 
         .form-group label {
             display: block;
             margin-bottom: 5px;
-            font-weight: bold;
+            font-weight: 600;
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
         }
 
         .form-group input {
             width: 100%;
-            padding: 8px;
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
             box-sizing: border-box;
         }
 
-        .modal-actions {
+        .full-width {
+            grid-column: span 2;
+        }
+
+        /* Links Tab */
+        .link-card {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .alt-links-list {
+            margin-top: 10px;
+            padding-left: 20px;
+            border-left: 2px solid #eee;
+        }
+
+        .alt-link-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        .btn-remove {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 0 10px;
+        }
+
+        .btn-add {
+            background: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 5px;
+            display: inline-block;
+        }
+
+        /* Global Save Button */
+        .save-bar {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
             text-align: right;
         }
 
-        .btn-cancel {
-            background: #6c757d;
+        .btn-save {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background 0.2s;
+        }
+
+        .btn-save:hover {
+            background: #219150;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="container">
-        <h1>Управление офферами</h1>
-        <ul class="offer-list" id="offerList">
-            <!-- Items will be injected here -->
-        </ul>
-        <button class="btn btn-save" id="saveBtn">Сохранить изменения</button>
-    </div>
-
-    <!-- Edit Modal -->
-    <div class="modal" id="editModal">
-        <div class="modal-content">
-            <h2>Редактировать оффер</h2>
-            <form id="editForm">
-                <input type="hidden" id="editId">
-                <div class="form-group">
-                    <label>Логотип (URL или файл)</label>
-                    <input type="file" id="logoFile" accept="image/*">
-                    <input type="text" id="logoUrl" placeholder="Или вставьте URL" style="margin-top: 5px;">
-                </div>
-                <div class="form-group">
-                    <label>Сумма</label>
-                    <input type="text" id="editAmount">
-                </div>
-                <div class="form-group">
-                    <label>Срок</label>
-                    <input type="text" id="editTerm">
-                </div>
-                <div class="form-group">
-                    <label>Ссылка (на кнопке и карточке)</label>
-                    <input type="text" id="editLink">
-                </div>
-                <div class="form-group">
-                    <label>Текст бейджа</label>
-                    <input type="text" id="editBadge">
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-cancel" onclick="closeModal()">Отмена</button>
-                    <button type="submit" class="btn">Сохранить</button>
-                </div>
-            </form>
+    <aside>
+        <div class="brand">Zaymer Admin</div>
+        <nav>
+            <a class="nav-link active" data-tab="positions">Позиции офферов</a>
+            <a class="nav-link" data-tab="descriptions">Описание офферов</a>
+            <a class="nav-link" data-tab="links">Ссылки</a>
+        </nav>
+        <div class="user-profile" onclick="alert('Logout functionality coming soon!')">
+            <div>Admin User</div>
+            <small style="color: #95a5a6;">Нажмите чтобы выйти</small>
         </div>
-    </div>
+    </aside>
+
+    <main>
+        <div id="positions-tab" class="tab-content active">
+            <h1>Позиции офферов</h1>
+            <div id="positions-list">
+                <!-- Rendered by JS -->
+            </div>
+        </div>
+
+        <div id="descriptions-tab" class="tab-content">
+            <h1>Описание офферов</h1>
+            <div id="descriptions-list">
+                <!-- Rendered by JS -->
+            </div>
+        </div>
+
+        <div id="links-tab" class="tab-content">
+            <h1>Ссылки</h1>
+            <div id="links-list">
+                <!-- Rendered by JS -->
+            </div>
+        </div>
+
+        <div class="save-bar">
+            <button class="btn-save" id="saveBtn">Сохранить изменения</button>
+        </div>
+    </main>
 
     <script src="data.js"></script>
     <script>
+        // --- State Management ---
         let currentOffers = getOffers();
-        const listEl = document.getElementById('offerList');
-        const modal = document.getElementById('editModal');
-        const form = document.getElementById('editForm');
 
-        function renderList() {
-            listEl.innerHTML = '';
+        // Ensure all offers have altLinks array (migration for old data)
+        currentOffers.forEach(offer => {
+            if (!offer.altLinks) offer.altLinks = [];
+        });
+
+        // --- Navigation ---
+        const navLinks = document.querySelectorAll('.nav-link');
+        const tabs = document.querySelectorAll('.tab-content');
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                // Remove active class from all
+                navLinks.forEach(l => l.classList.remove('active'));
+                tabs.forEach(t => t.classList.remove('active'));
+
+                // Add active to current
+                link.classList.add('active');
+                const tabId = link.getAttribute('data-tab') + '-tab';
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        // --- Renders ---
+
+        function renderAll() {
+            renderPositions();
+            renderDescriptions();
+            renderLinks();
+        }
+
+        // 1. Positions Tab
+        function renderPositions() {
+            const list = document.getElementById('positions-list');
+            list.innerHTML = '';
             currentOffers.forEach((offer, index) => {
-                const li = document.createElement('li');
-                li.className = 'offer-item';
-                li.draggable = true;
-                li.dataset.index = index;
-                li.innerHTML = `
-        <span class="handle">☰</span>
-        <div class="offer-preview">
-          <img src="${offer.logo}" alt="logo">
-          <div class="offer-details">
-            <strong>${offer.amount}</strong> - ${offer.term}<br>
-            <small>${offer.link}</small>
-          </div>
-        </div>
-        <button class="btn" onclick="openEdit(${index})">Редактировать</button>
-      `;
-                addDragEvents(li);
-                listEl.appendChild(li);
+                const div = document.createElement('div');
+                div.className = 'offer-item';
+                div.draggable = true;
+                div.dataset.index = index;
+                div.innerHTML = `
+                    <div class="handle">☰</div>
+                    <div class="offer-preview">
+                        <img src="${offer.logo}" alt="logo">
+                        <div>
+                            <strong>${offer.amount}</strong><br>
+                            <small>${offer.term}</small>
+                        </div>
+                    </div>
+                    <div class="offer-controls">
+                        <button class="btn-icon" onclick="moveItem(${index}, -1)" title="Вверх">↑</button>
+                        <button class="btn-icon" onclick="moveItem(${index}, 1)" title="Вниз">↓</button>
+                    </div>
+                `;
+                addDragEvents(div);
+                list.appendChild(div);
             });
         }
 
-        // Drag and Drop Logic
+        // 2. Descriptions Tab
+        function renderDescriptions() {
+            const list = document.getElementById('descriptions-list');
+            list.innerHTML = '';
+            currentOffers.forEach((offer, index) => {
+                const div = document.createElement('div');
+                div.className = 'card desc-card';
+                div.innerHTML = `
+                    <div class="logo-section">
+                        <img src="${offer.logo}" id="preview-${index}">
+                        <input type="file" id="file-${index}" style="display:none" accept="image/*" onchange="handleFileUpload(${index}, this)">
+                        <button class="btn-add" onclick="document.getElementById('file-${index}').click()" style="width:100%; margin-bottom:5px;">Загрузить лого</button>
+                        <input type="text" value="${offer.logo}" onchange="updateField(${index}, 'logo', this.value)" placeholder="URL логотипа" style="width:100%; font-size:10px;">
+                    </div>
+                    <div class="fields-section">
+                        <div class="form-group">
+                            <label>Сумма</label>
+                            <input type="text" value="${offer.amount}" oninput="updateField(${index}, 'amount', this.value)">
+                        </div>
+                        <div class="form-group">
+                            <label>Срок</label>
+                            <input type="text" value="${offer.term}" oninput="updateField(${index}, 'term', this.value)">
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Текст бейджа</label>
+                            <input type="text" value="${offer.badgeText}" oninput="updateField(${index}, 'badgeText', this.value)">
+                        </div>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        // 3. Links Tab
+        function renderLinks() {
+            const list = document.getElementById('links-list');
+            list.innerHTML = '';
+            currentOffers.forEach((offer, index) => {
+                const div = document.createElement('div');
+                div.className = 'card link-card';
+
+                let altLinksHtml = '';
+                if (offer.altLinks && offer.altLinks.length > 0) {
+                    offer.altLinks.forEach((link, linkIndex) => {
+                        altLinksHtml += `
+                            <div class="alt-link-item">
+                                <input type="text" value="${link}" onchange="updateAltLink(${index}, ${linkIndex}, this.value)" placeholder="Альтернативная ссылка">
+                                <button class="btn-remove" onclick="removeAltLink(${index}, ${linkIndex})">×</button>
+                            </div>
+                        `;
+                    });
+                }
+
+                div.innerHTML = `
+                    <div class="offer-preview" style="margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
+                        <img src="${offer.logo}" style="width: 30px;">
+                        <strong>${offer.amount}</strong>
+                    </div>
+                    <div class="form-group">
+                        <label>Основная ссылка</label>
+                        <input type="text" value="${offer.link}" onchange="updateField(${index}, 'link', this.value)">
+                    </div>
+                    <div class="form-group">
+                        <label>Альтернативные ссылки</label>
+                        <div class="alt-links-list">
+                            ${altLinksHtml}
+                            <button class="btn-add" onclick="addAltLink(${index})">+ Добавить ссылку</button>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        // --- Actions ---
+
+        function updateField(index, field, value) {
+            currentOffers[index][field] = value;
+            // If logo changed, update preview in UI immediately if possible, or just re-render positions to show new logo
+            if (field === 'logo') {
+                const preview = document.getElementById(`preview-${index}`);
+                if (preview) preview.src = value;
+            }
+        }
+
+        function handleFileUpload(index, input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    updateField(index, 'logo', e.target.result);
+                    // Also update the text input for URL to show it's data URI (optional, or just leave blank)
+                    // Re-render descriptions to show new preview
+                    renderDescriptions();
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function moveItem(index, direction) {
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= currentOffers.length) return;
+
+            const item = currentOffers[index];
+            currentOffers.splice(index, 1);
+            currentOffers.splice(newIndex, 0, item);
+
+            renderAll(); // Re-render all to keep sync
+        }
+
+        function addAltLink(index) {
+            if (!currentOffers[index].altLinks) currentOffers[index].altLinks = [];
+            currentOffers[index].altLinks.push('');
+            renderLinks();
+        }
+
+        function updateAltLink(offerIndex, linkIndex, value) {
+            currentOffers[offerIndex].altLinks[linkIndex] = value;
+        }
+
+        function removeAltLink(offerIndex, linkIndex) {
+            currentOffers[offerIndex].altLinks.splice(linkIndex, 1);
+            renderLinks();
+        }
+
+        // --- Drag and Drop ---
         let dragStartIndex;
 
         function addDragEvents(item) {
             item.addEventListener('dragstart', () => {
-                dragStartIndex = +item.closest('li').getAttribute('data-index');
+                dragStartIndex = +item.getAttribute('data-index');
                 item.classList.add('dragging');
             });
-
-            item.addEventListener('dragover', (e) => {
-                e.preventDefault();
-            });
-
+            item.addEventListener('dragover', (e) => e.preventDefault());
             item.addEventListener('drop', () => {
-                const dragEndIndex = +item.closest('li').getAttribute('data-index');
+                const dragEndIndex = +item.getAttribute('data-index');
                 swapItems(dragStartIndex, dragEndIndex);
                 item.classList.remove('dragging');
             });
-
-            item.addEventListener('dragenter', () => {
-                item.classList.add('over');
-            });
-
-            item.addEventListener('dragleave', () => {
-                item.classList.remove('over');
-            });
-
+            item.addEventListener('dragenter', () => item.classList.add('over'));
+            item.addEventListener('dragleave', () => item.classList.remove('over'));
             item.addEventListener('dragend', () => {
                 item.classList.remove('dragging');
                 document.querySelectorAll('.offer-item').forEach(i => i.classList.remove('over'));
@@ -248,64 +537,20 @@
             const itemOne = currentOffers[fromIndex];
             currentOffers.splice(fromIndex, 1);
             currentOffers.splice(toIndex, 0, itemOne);
-            renderList();
+            renderAll();
         }
 
-        // Edit Logic
-        function openEdit(index) {
-            const offer = currentOffers[index];
-            document.getElementById('editId').value = index;
-            document.getElementById('logoUrl').value = offer.logo;
-            document.getElementById('editAmount').value = offer.amount;
-            document.getElementById('editTerm').value = offer.term;
-            document.getElementById('editLink').value = offer.link;
-            document.getElementById('editBadge').value = offer.badgeText;
-            document.getElementById('logoFile').value = ''; // Reset file input
-            modal.classList.add('active');
-        }
-
-        function closeModal() {
-            modal.classList.remove('active');
-        }
-
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const index = document.getElementById('editId').value;
-            const fileInput = document.getElementById('logoFile');
-
-            const updateOffer = (logoData) => {
-                currentOffers[index] = {
-                    ...currentOffers[index],
-                    logo: logoData || document.getElementById('logoUrl').value,
-                    amount: document.getElementById('editAmount').value,
-                    term: document.getElementById('editTerm').value,
-                    link: document.getElementById('editLink').value,
-                    badgeText: document.getElementById('editBadge').value
-                };
-                renderList();
-                closeModal();
-            };
-
-            if (fileInput.files && fileInput.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    updateOffer(e.target.result);
-                };
-                reader.readAsDataURL(fileInput.files[0]);
-            } else {
-                updateOffer(null);
-            }
-        });
-
-        // Save Logic
+        // --- Save ---
         document.getElementById('saveBtn').addEventListener('click', () => {
             saveOffers(currentOffers);
-            alert('Изменения сохранены! Обновите страницу index.html.');
+            alert('Все изменения сохранены!');
+            renderAll(); // Refresh to ensure clean state
         });
 
-        renderList();
-    </script>
+        // Initial Render
+        renderAll();
 
+    </script>
 </body>
 
 </html>
