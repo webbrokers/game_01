@@ -24,6 +24,8 @@
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
+            transition: transform 0.3s ease;
+            z-index: 1000;
         }
 
         aside .brand {
@@ -67,6 +69,18 @@
             background: #162028;
         }
 
+        /* Overlay for Mobile */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 900;
+        }
+
         /* Main Content Structure */
         main {
             flex-grow: 1;
@@ -74,6 +88,7 @@
             flex-direction: column;
             overflow: hidden;
             /* Prevent body scroll */
+            position: relative;
         }
 
         /* Sticky Top Bar */
@@ -87,6 +102,22 @@
             flex-shrink: 0;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             z-index: 10;
+        }
+
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #2c3e50;
+            padding: 0;
         }
 
         .top-bar h1 {
@@ -200,6 +231,7 @@
         .desc-card .logo-section {
             width: 150px;
             text-align: center;
+            flex-shrink: 0;
         }
 
         .desc-card .logo-section img {
@@ -295,6 +327,7 @@
             cursor: not-allowed;
             transition: background 0.3s;
             pointer-events: none;
+            white-space: nowrap;
         }
 
         .btn-save.active {
@@ -307,12 +340,133 @@
         .btn-save.active:hover {
             background: #219150;
         }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            aside {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                transform: translateX(-100%);
+            }
+
+            body.sidebar-open aside {
+                transform: translateX(0);
+            }
+
+            body.sidebar-open .overlay {
+                display: block;
+            }
+
+            .menu-btn {
+                display: block;
+            }
+
+            .top-bar {
+                padding: 10px 15px;
+            }
+
+            .top-bar h1 {
+                font-size: 18px;
+            }
+
+            .content-area {
+                padding: 15px;
+            }
+
+            /* Stack descriptions */
+            .desc-card {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .desc-card .logo-section {
+                width: 100%;
+                max-width: 200px;
+                margin-bottom: 15px;
+            }
+
+            .desc-card .fields-section {
+                width: 100%;
+                grid-template-columns: 1fr;
+            }
+
+            .full-width {
+                grid-column: span 1;
+            }
+
+            /* Adjust positions list */
+            .offer-item {
+                flex-wrap: wrap;
+            }
+
+            .offer-preview {
+                width: 100%;
+                margin-bottom: 10px;
+                order: 3;
+            }
+
+            .position-number {
+                order: 1;
+            }
+
+            .handle {
+                order: 2;
+            }
+
+            .offer-controls {
+                order: 4;
+                margin-left: auto;
+            }
+
+            /* Better mobile layout for positions */
+            .offer-item {
+                display: grid;
+                grid-template-columns: auto auto 1fr auto;
+                grid-template-rows: auto auto;
+                gap: 5px 10px;
+                align-items: center;
+            }
+
+            .position-number {
+                grid-area: 1 / 1;
+                margin: 0;
+            }
+
+            .handle {
+                grid-area: 1 / 2;
+                margin: 0;
+            }
+
+            .offer-preview {
+                grid-area: 2 / 1 / 3 / 5;
+                margin: 0;
+                width: auto;
+                border-top: 1px solid #eee;
+                padding-top: 5px;
+                margin-top: 5px;
+            }
+
+            .offer-controls {
+                grid-area: 1 / 4;
+                margin: 0;
+            }
+
+            /* Save button compact */
+            .btn-save {
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 
 <body>
 
-    <aside>
+    <div class="overlay" id="overlay"></div>
+
+    <aside id="sidebar">
         <div class="brand">Zaymer Admin</div>
         <nav>
             <a class="nav-link active" data-tab="positions" data-title="Позиции офферов">Позиции офферов</a>
@@ -328,7 +482,10 @@
     <main>
         <!-- Sticky Top Bar -->
         <div class="top-bar">
-            <h1 id="page-title">Позиции офферов</h1>
+            <div class="top-bar-left">
+                <button class="menu-btn" id="menuBtn">☰</button>
+                <h1 id="page-title">Позиции офферов</h1>
+            </div>
             <button class="btn-save" id="saveBtn">Сохранить изменения</button>
         </div>
 
@@ -364,6 +521,23 @@
             if (!offer.altLinks) offer.altLinks = [];
         });
 
+        // --- Mobile Sidebar Logic ---
+        const menuBtn = document.getElementById('menuBtn');
+        const overlay = document.getElementById('overlay');
+        const body = document.body;
+        const sidebar = document.getElementById('sidebar');
+
+        function toggleSidebar() {
+            body.classList.toggle('sidebar-open');
+        }
+
+        function closeSidebar() {
+            body.classList.remove('sidebar-open');
+        }
+
+        menuBtn.addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', closeSidebar);
+
         // --- Navigation ---
         const navLinks = document.querySelectorAll('.nav-link');
         const tabs = document.querySelectorAll('.tab-content');
@@ -382,6 +556,9 @@
 
                 // Update Title
                 pageTitle.textContent = link.getAttribute('data-title');
+
+                // Close sidebar on mobile
+                closeSidebar();
             });
         });
 
@@ -426,16 +603,16 @@
                 div.innerHTML = `
                     <div class="position-number">${index + 1}</div>
                     <div class="handle">☰</div>
+                    <div class="offer-controls">
+                        <button class="btn-icon" onclick="moveItem(${index}, -1)" title="Вверх">↑</button>
+                        <button class="btn-icon" onclick="moveItem(${index}, 1)" title="Вниз">↓</button>
+                    </div>
                     <div class="offer-preview">
                         <img src="${offer.logo}" alt="logo">
                         <div>
                             <strong>${offer.amount}</strong><br>
                             <small>${offer.term}</small>
                         </div>
-                    </div>
-                    <div class="offer-controls">
-                        <button class="btn-icon" onclick="moveItem(${index}, -1)" title="Вверх">↑</button>
-                        <button class="btn-icon" onclick="moveItem(${index}, 1)" title="Вниз">↓</button>
                     </div>
                 `;
                 addDragEvents(div);
