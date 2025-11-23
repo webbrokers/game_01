@@ -1,5 +1,5 @@
 /**
- * Комбекер - Скрипт перехвата кликов и перенаправления
+ * Popunder - Скрипт перехвата кликов и перенаправления
  * 
  * Автоматически перехватывает клики по кнопкам "Оформить карту",
  * открывает оффер в новом окне и перенаправляет текущую вкладку
@@ -14,7 +14,7 @@
         redirectUrl: 'zyamer2/index.html',
 
         // URL страницы с оффером (открывается в новом окне)
-        offerPageUrl: 'comebacker/offer-link.html',
+        offerPageUrl: 'popunder/offer-link.html',
 
         // Селекторы кнопок для перехвата
         buttonSelectors: [
@@ -37,11 +37,11 @@
      */
     function init() {
         if (!config.enabled) {
-            console.log('[Комбекер] Скрипт отключен');
+            console.log('[Popunder] Скрипт отключен');
             return;
         }
 
-        console.log('[Комбекер] Инициализация...');
+        console.log('[Popunder] Инициализация...');
         attachEventListeners();
     }
 
@@ -52,14 +52,14 @@
         // Находим все кнопки "Оформить карту"
         const buttons = findOfferButtons();
 
-        console.log(`[Комбекер] Найдено кнопок: ${buttons.length}`);
+        console.log(`[Popunder] Найдено кнопок: ${buttons.length}`);
 
         buttons.forEach((button, index) => {
             button.addEventListener('click', function (event) {
                 event.preventDefault(); // Предотвращаем стандартное поведение
                 event.stopPropagation();
 
-                console.log(`[Комбекер] Клик по кнопке #${index + 1}`);
+                console.log(`[Popunder] Клик по кнопке #${index + 1}`);
 
                 // Получаем оригинальную ссылку из кнопки
                 const originalUrl = button.href || button.getAttribute('data-url') || '#';
@@ -100,7 +100,7 @@
      * Обработка клика по кнопке
      */
     function handleButtonClick(originalUrl) {
-        console.log(`[Комбекер] Оригинальный URL: ${originalUrl}`);
+        console.log(`[Popunder] Оригинальный URL: ${originalUrl}`);
 
         // Формируем URL страницы оффера с параметрами
         const offerUrl = `${config.offerPageUrl}?url=${encodeURIComponent(originalUrl)}`;
@@ -109,14 +109,14 @@
         const newWindow = window.open(offerUrl, '_blank', 'noopener,noreferrer');
 
         if (newWindow) {
-            console.log('[Комбекер] Новое окно открыто');
+            console.log('[Popunder] Новое окно открыто');
         } else {
-            console.warn('[Комбекер] Не удалось открыть новое окно (возможно заблокировано браузером)');
+            console.warn('[Popunder] Не удалось открыть новое окно (возможно заблокировано браузером)');
         }
 
         // Перенаправляем текущую вкладку с небольшой задержкой
         setTimeout(() => {
-            console.log(`[Комбекер] Перенаправление на: ${config.redirectUrl}`);
+            console.log(`[Popunder] Перенаправление на: ${config.redirectUrl}`);
             window.location.href = config.redirectUrl;
         }, config.redirectDelay);
     }
@@ -124,13 +124,13 @@
     /**
      * Публичный API для настройки
      */
-    window.Comebacker = {
+    window.Popunder = {
         config: config,
 
         // Метод для изменения конфигурации
         configure: function (options) {
             Object.assign(config, options);
-            console.log('[Комбекер] Конфигурация обновлена', config);
+            console.log('[Popunder] Конфигурация обновлена', config);
         },
 
         // Метод для повторной инициализации
