@@ -56,6 +56,16 @@
                     <h3>Пользовательские скрипты</h3>
                     <p>Этот код будет добавлен перед закрывающим тегом <code>&lt;/body&gt;</code> на главной странице.
                     </p>
+                    <div
+                        style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px 15px; margin-bottom: 15px; border-radius: 4px; display: flex; align-items: start; gap: 10px;">
+                        <span style="font-size: 20px; color: #856404;">⚠️</span>
+                        <div style="color: #856404; font-size: 14px; line-height: 1.5;">
+                            <strong>Важно:</strong> Если виджет не работает, проверьте правильность путей к
+                            скриптам.<br>
+                            <small>Пример: если <code>index.html</code> находится в папке <code>zyamer2/</code>, а
+                                скрипт в <code>vidget/</code>, используйте путь <code>../vidget/widget.js</code></small>
+                        </div>
+                    </div>
                     <textarea id="custom-code" class="code-editor" placeholder="<script>...</script>"
                         oninput="markAsDirty()"></textarea>
                 </div>
