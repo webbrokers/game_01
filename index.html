@@ -233,6 +233,25 @@
 
     <!-- Скрипт Комбекер для перехвата кликов и перенаправления -->
     <script src="comebacker/comebacker.js"></script>
+
+    <!-- Конфигурация виджета "Вам подарок" -->
+    <script>
+        window.GiftWidgetConfig = {
+            position: 'right',      // Позиция виджета: 'left' или 'right'
+            isActive: true,         // Автоматическое открытие
+            timer: 10,              // Задержка автооткрытия в секундах
+            isBlinking: true,       // Эффект мигания
+            text: 'Вам подарок',    // Текст на закладке
+            buttons: [
+                { text: 'Оформить', link: '#' },
+                { text: 'Оформить', link: '#' },
+                { text: 'Оформить', link: '#' },
+                { text: 'Оформить', link: '#' }
+            ]
+        };
+    </script>
+    <!-- Подключение виджета -->
+    <script src="vidget/widget.js"></script>
 </body>
 
 </html>
