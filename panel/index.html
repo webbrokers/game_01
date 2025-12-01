@@ -247,10 +247,18 @@
       cursor: crosshair;
     }
 
+    .board-viewport {
+      position: absolute;
+      inset: 0;
+      transform-origin: 0 0;
+    }
+
     .connections {
       position: absolute;
       inset: 0;
       pointer-events: auto;
+      width: 100%;
+      height: 100%;
     }
 
     .connections path:hover {
@@ -483,6 +491,31 @@
       display: inline-block;
     }
 
+    .zoom-controls {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      background: #fff;
+      border: 1px solid #dfe4ee;
+      box-shadow: var(--shadow);
+      border-radius: 12px;
+      display: grid;
+      grid-template-columns: repeat(3, 40px);
+      overflow: hidden;
+    }
+
+    .zoom-btn {
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border-right: 1px solid #e5e9f0;
+      background: #f8fafc;
+      transition: background 0.15s ease;
+    }
+
+    .zoom-btn:last-child { border-right: none; }
+    .zoom-btn:hover { background: #eef2f8; }
+
     /* Responsive fallback */
     @media (max-width: 1100px) {
       .board-wrapper { grid-template-columns: 1fr; }
@@ -645,8 +678,15 @@
 
       <div class="board-wrapper">
         <div class="board" id="board">
-          <svg class="connections" id="connections"></svg>
-          <div class="node-layer" id="nodeLayer"></div>
+          <div class="board-viewport" id="boardViewport">
+            <svg class="connections" id="connections"></svg>
+            <div class="node-layer" id="nodeLayer"></div>
+          </div>
+          <div class="zoom-controls">
+            <button class="zoom-btn" id="zoomOut" aria-label="Уменьшить">−</button>
+            <div class="zoom-btn" id="zoomValue" aria-label="Текущий масштаб">100%</div>
+            <button class="zoom-btn" id="zoomIn" aria-label="Увеличить">+</button>
+          </div>
         </div>
 
         <aside class="detail-panel">
@@ -745,6 +785,7 @@
         <span>Перетаскивай блоки мышью</span>
         <span>Тяни связь: клик по правому порту → отпусти на левом</span>
         <span>Удалить связь: двойной клик по линии</span>
+        <span>Масштаб: Ctrl/Cmd + колесо или кнопки +/−</span>
         <span class="dot"></span> Данные сохраняются локально (localStorage)
       </div>
     </main>
@@ -752,11 +793,16 @@
 
   <script>
     const board = document.getElementById("board");
+    const boardViewport = document.getElementById("boardViewport");
     const nodeLayer = document.getElementById("nodeLayer");
     const connectionsSvg = document.getElementById("connections");
+    const zoomOutBtn = document.getElementById("zoomOut");
+    const zoomInBtn = document.getElementById("zoomIn");
+    const zoomValue = document.getElementById("zoomValue");
 
     const STORAGE_KEY = "panel_state_v1";
     const defaultState = {
+      zoom: 1,
       nodes: [
         { id: "event", type: "event", title: "Событие", subtitle: "Клиент попал в сегмент", x: 140, y: 240 },
         { id: "groupA", type: "group", title: "Группа шагов", subtitle: "Email с рекомендациями", x: 400, y: 240 },
@@ -775,6 +821,7 @@
     };
 
     let state = loadState();
+    let zoom = state.zoom || 1;
     let activeConnection = null; // { from, start, path }
 
     const icons = {
@@ -826,8 +873,8 @@
       const rect = el.getBoundingClientRect();
       const parentRect = board.getBoundingClientRect();
       return {
-        x: rect.left - parentRect.left + (side === "out" ? rect.width : 0),
-        y: rect.top - parentRect.top + rect.height / 2
+        x: (rect.left - parentRect.left) / zoom + (side === "out" ? rect.width / zoom : 0),
+        y: (rect.top - parentRect.top) / zoom + rect.height / (2 * zoom)
       };
     }
 
@@ -838,8 +885,8 @@
       labelLayer.style.inset = "0";
       labelLayer.style.pointerEvents = "none";
       labelLayer.id = "labels";
-      board.querySelectorAll("#labels").forEach(el => el.remove());
-      board.appendChild(labelLayer);
+      boardViewport.querySelectorAll("#labels").forEach(el => el.remove());
+      boardViewport.appendChild(labelLayer);
 
       state.links.forEach(link => {
         const fromEl = nodeLayer.querySelector(`[data-id="${link.from}"]`);
@@ -916,10 +963,10 @@
       window.addEventListener("mousemove", (e) => {
         if (!dragging) return;
         const boardRect = board.getBoundingClientRect();
-        const dx = e.clientX - start.x;
-        const dy = e.clientY - start.y;
-        const nextX = clamp(offset.x + dx, 0, boardRect.width - card.offsetWidth);
-        const nextY = clamp(offset.y + dy, 0, boardRect.height - card.offsetHeight);
+        const dx = (e.clientX - start.x) / zoom;
+        const dy = (e.clientY - start.y) / zoom;
+        const nextX = clamp(offset.x + dx, 0, boardRect.width / zoom - card.offsetWidth);
+        const nextY = clamp(offset.y + dy, 0, boardRect.height / zoom - card.offsetHeight);
         node.x = nextX;
         node.y = nextY;
         card.style.left = `${node.x}px`;
@@ -952,7 +999,7 @@
       if (!activeConnection) return;
       const boardRect = board.getBoundingClientRect();
       const start = activeConnection.start;
-      const end = { x: clientX - boardRect.left, y: clientY - boardRect.top };
+      const end = { x: (clientX - boardRect.left) / zoom, y: (clientY - boardRect.top) / zoom };
       const dx = Math.max(60, Math.abs(end.x - start.x) * 0.4);
       activeConnection.path.setAttribute("d", `M ${start.x} ${start.y} C ${start.x + dx} ${start.y}, ${end.x - dx} ${end.y}, ${end.x} ${end.y}`);
     }
@@ -998,9 +1045,24 @@
       });
     }
 
+    function setZoom(next) {
+      const clamped = clamp(next, 0.6, 1.8);
+      zoom = clamped;
+      state.zoom = zoom;
+      applyZoom();
+      persistState();
+    }
+
+    function applyZoom() {
+      boardViewport.style.transform = `scale(${zoom})`;
+      zoomValue.textContent = `${Math.round(zoom * 100)}%`;
+      drawConnections();
+    }
+
     function init() {
       renderNodes();
       drawConnections();
+      applyZoom();
       window.addEventListener("mousemove", (e) => updateConnectionPreview(e.clientX, e.clientY));
       window.addEventListener("mouseup", () => finishConnection());
       connectionsSvg.addEventListener("dblclick", (e) => {
@@ -1014,6 +1076,16 @@
       window.addEventListener("resize", () => {
         drawConnections();
       });
+
+      zoomOutBtn.addEventListener("click", () => setZoom(zoom - 0.1));
+      zoomInBtn.addEventListener("click", () => setZoom(zoom + 0.1));
+      board.addEventListener("wheel", (e) => {
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+          const direction = e.deltaY > 0 ? -0.1 : 0.1;
+          setZoom(zoom + direction);
+        }
+      }, { passive: false });
     }
 
     init();
