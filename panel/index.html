@@ -240,12 +240,22 @@
       background: radial-gradient(var(--grid-dot) 1px, transparent 1px);
       background-size: 24px 24px;
       overflow: hidden;
+      cursor: default;
+    }
+
+    .board.connecting {
+      cursor: crosshair;
     }
 
     .connections {
       position: absolute;
       inset: 0;
-      pointer-events: none;
+      pointer-events: auto;
+    }
+
+    .connections path:hover {
+      stroke: #6a4de3;
+      stroke-width: 2.6;
     }
 
     .node-layer {
@@ -328,6 +338,7 @@
 
     .port.in { left: -8px; }
     .port.out { right: -8px; }
+    .port.target { border-color: #6a4de3; box-shadow: 0 0 0 4px rgba(106, 77, 227, 0.12); }
     .port.pulse::after {
       content: "";
       position: absolute;
@@ -731,9 +742,10 @@
       </div>
 
       <div class="legend">
-        <span>Редактировать: Клик</span>
-        <span>Выбрать блок <span class="kbd">Shift + Клик</span></span>
-        <span class="dot"></span> Сделано для быстрой проверки UX — статическая демо-схема
+        <span>Перетаскивай блоки мышью</span>
+        <span>Тяни связь: клик по правому порту → отпусти на левом</span>
+        <span>Удалить связь: двойной клик по линии</span>
+        <span class="dot"></span> Данные сохраняются локально (localStorage)
       </div>
     </main>
   </div>
@@ -743,22 +755,27 @@
     const nodeLayer = document.getElementById("nodeLayer");
     const connectionsSvg = document.getElementById("connections");
 
-    const nodes = [
-      { id: "event", type: "event", title: "Событие", subtitle: "Клиент попал в сегмент", x: 140, y: 240 },
-      { id: "groupA", type: "group", title: "Группа шагов", subtitle: "Email с рекомендациями", x: 400, y: 240 },
-      { id: "condition", type: "condition", title: "Условие", subtitle: "Есть заказ", x: 660, y: 240, badges: ["", ""] },
-      { id: "groupB", type: "group", title: "Группа шагов", subtitle: "Исключить из оттока, добавить в активных", x: 930, y: 140 },
-      { id: "wait", type: "wait", title: "Ожидание", subtitle: "3 дня", x: 930, y: 320 },
-      { id: "groupC", type: "group", title: "Группа шагов", subtitle: "Промокод + повторное письмо", x: 1200, y: 320 }
-    ];
+    const STORAGE_KEY = "panel_state_v1";
+    const defaultState = {
+      nodes: [
+        { id: "event", type: "event", title: "Событие", subtitle: "Клиент попал в сегмент", x: 140, y: 240 },
+        { id: "groupA", type: "group", title: "Группа шагов", subtitle: "Email с рекомендациями", x: 400, y: 240 },
+        { id: "condition", type: "condition", title: "Условие", subtitle: "Есть заказ", x: 660, y: 240, badges: ["", ""] },
+        { id: "groupB", type: "group", title: "Группа шагов", subtitle: "Исключить из оттока, добавить в активных", x: 930, y: 140 },
+        { id: "wait", type: "wait", title: "Ожидание", subtitle: "3 дня", x: 930, y: 320 },
+        { id: "groupC", type: "group", title: "Группа шагов", subtitle: "Промокод + повторное письмо", x: 1200, y: 320 }
+      ],
+      links: [
+        { from: "event", to: "groupA" },
+        { from: "groupA", to: "condition" },
+        { from: "condition", to: "groupB", label: "да" },
+        { from: "condition", to: "wait", label: "нет" },
+        { from: "wait", to: "groupC" }
+      ]
+    };
 
-    const links = [
-      { from: "event", to: "groupA" },
-      { from: "groupA", to: "condition" },
-      { from: "condition", to: "groupB", label: "да" },
-      { from: "condition", to: "wait", label: "нет" },
-      { from: "wait", to: "groupC" }
-    ];
+    let state = loadState();
+    let activeConnection = null; // { from, start, path }
 
     const icons = {
       event: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="7"></circle><path d="M12 8v4l2 2"></path></svg>`,
@@ -797,9 +814,11 @@
 
     function renderNodes() {
       nodeLayer.innerHTML = "";
-      nodes.forEach(node => {
+      state.nodes.forEach(node => {
         const card = createNodeCard(node);
         nodeLayer.appendChild(card);
+        addDrag(card, node);
+        addPortHandlers(card, node);
       });
     }
 
@@ -822,7 +841,7 @@
       board.querySelectorAll("#labels").forEach(el => el.remove());
       board.appendChild(labelLayer);
 
-      links.forEach(link => {
+      state.links.forEach(link => {
         const fromEl = nodeLayer.querySelector(`[data-id="${link.from}"]`);
         const toEl = nodeLayer.querySelector(`[data-id="${link.to}"]`);
         if (!fromEl || !toEl) return;
@@ -832,11 +851,15 @@
         const dx = Math.max(80, Math.abs(end.x - start.x) * 0.45);
 
         const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.dataset.from = link.from;
+        path.dataset.to = link.to;
         path.setAttribute("d", `M ${start.x} ${start.y} C ${start.x + dx} ${start.y}, ${end.x - dx} ${end.y}, ${end.x} ${end.y}`);
         path.setAttribute("fill", "none");
         path.setAttribute("stroke", "#c3cedf");
         path.setAttribute("stroke-width", "2");
         path.setAttribute("stroke-linecap", "round");
+        path.style.pointerEvents = "stroke";
+        path.style.cursor = "pointer";
         connectionsSvg.appendChild(path);
 
         if (link.label) {
@@ -852,9 +875,142 @@
       });
     }
 
+    function loadState() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) return JSON.parse(saved);
+      } catch (e) {
+        console.warn("state load failed", e);
+      }
+      if (typeof structuredClone === "function") return structuredClone(defaultState);
+      return JSON.parse(JSON.stringify(defaultState));
+    }
+
+    function persistState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        console.warn("state save failed", e);
+      }
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(Math.max(value, min), max);
+    }
+
+    function addDrag(card, node) {
+      let dragging = false;
+      let start = { x: 0, y: 0 };
+      let offset = { x: 0, y: 0 };
+
+      card.addEventListener("mousedown", (e) => {
+        if (e.target.classList.contains("port")) return;
+        dragging = true;
+        const rect = card.getBoundingClientRect();
+        const boardRect = board.getBoundingClientRect();
+        start = { x: e.clientX, y: e.clientY };
+        offset = { x: rect.left - boardRect.left, y: rect.top - boardRect.top };
+        document.body.style.userSelect = "none";
+      });
+
+      window.addEventListener("mousemove", (e) => {
+        if (!dragging) return;
+        const boardRect = board.getBoundingClientRect();
+        const dx = e.clientX - start.x;
+        const dy = e.clientY - start.y;
+        const nextX = clamp(offset.x + dx, 0, boardRect.width - card.offsetWidth);
+        const nextY = clamp(offset.y + dy, 0, boardRect.height - card.offsetHeight);
+        node.x = nextX;
+        node.y = nextY;
+        card.style.left = `${node.x}px`;
+        card.style.top = `${node.y}px`;
+        drawConnections();
+      });
+
+      window.addEventListener("mouseup", () => {
+        if (!dragging) return;
+        dragging = false;
+        document.body.style.userSelect = "";
+        persistState();
+      });
+    }
+
+    function startConnection(fromId, startPoint) {
+      activeConnection = { from: fromId, start: startPoint, path: null };
+      board.classList.add("connecting");
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("fill", "none");
+      path.setAttribute("stroke", "#7fc4ff");
+      path.setAttribute("stroke-width", "2");
+      path.setAttribute("stroke-dasharray", "6 4");
+      path.setAttribute("stroke-linecap", "round");
+      connectionsSvg.appendChild(path);
+      activeConnection.path = path;
+    }
+
+    function updateConnectionPreview(clientX, clientY) {
+      if (!activeConnection) return;
+      const boardRect = board.getBoundingClientRect();
+      const start = activeConnection.start;
+      const end = { x: clientX - boardRect.left, y: clientY - boardRect.top };
+      const dx = Math.max(60, Math.abs(end.x - start.x) * 0.4);
+      activeConnection.path.setAttribute("d", `M ${start.x} ${start.y} C ${start.x + dx} ${start.y}, ${end.x - dx} ${end.y}, ${end.x} ${end.y}`);
+    }
+
+    function finishConnection(toId) {
+      if (!activeConnection) return;
+      const { from, path } = activeConnection;
+      if (path) path.remove();
+      if (toId && toId !== from) {
+        const exists = state.links.some(l => l.from === from && l.to === toId);
+        if (!exists) {
+          state.links.push({ from, to: toId });
+          persistState();
+        }
+      }
+      activeConnection = null;
+      board.classList.remove("connecting");
+      nodeLayer.querySelectorAll(".port.target").forEach(p => p.classList.remove("target"));
+      drawConnections();
+    }
+
+    function addPortHandlers(card, node) {
+      const outPort = card.querySelector(".port.out");
+      const inPort = card.querySelector(".port.in");
+
+      outPort.addEventListener("mousedown", (e) => {
+        e.stopPropagation();
+        const start = getPortPosition(card, "out");
+        startConnection(node.id, start);
+      });
+
+      inPort.addEventListener("mouseup", (e) => {
+        e.stopPropagation();
+        if (!activeConnection) return;
+        finishConnection(node.id);
+      });
+
+      inPort.addEventListener("mouseenter", () => {
+        if (activeConnection) inPort.classList.add("target");
+      });
+      inPort.addEventListener("mouseleave", () => {
+        inPort.classList.remove("target");
+      });
+    }
+
     function init() {
       renderNodes();
       drawConnections();
+      window.addEventListener("mousemove", (e) => updateConnectionPreview(e.clientX, e.clientY));
+      window.addEventListener("mouseup", () => finishConnection());
+      connectionsSvg.addEventListener("dblclick", (e) => {
+        const target = e.target;
+        if (target.tagName === "path" && target.dataset.from && target.dataset.to) {
+          state.links = state.links.filter(l => !(l.from === target.dataset.from && l.to === target.dataset.to));
+          persistState();
+          drawConnections();
+        }
+      });
       window.addEventListener("resize", () => {
         drawConnections();
       });
